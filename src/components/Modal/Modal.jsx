@@ -1,48 +1,47 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Overlay, ModalContainer, ModalImg } from './Modal.styled';
 
 const modalRoot = document.querySelector('#modal-root');
 
-class Modal extends Component {
+const Modal = ({ onModalClose, url }) => {
+    
+    useEffect(() => {
 
-    componentDidMount() {
-        window.addEventListener('keydown', this.handleKeyDown);
-    };
-
-    componentWillUnmount() {
-        window.removeEventListener('keydown', this.handleKeyDown);
-    };
-
-    handleKeyDown = event => {
-        if (event.code === 'Escape') {
-            this.props.closeModal();
+        const handleKeyDown = event => {
+            if (event.code === 'Escape') {
+                onModalClose();
+            }
         }
-    };
 
-    handleBackdropClick = event => {
-        console.log('кликнули в бэкдроп');
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+
+    }, [onModalClose]);
+
+    const handleBackdropClick = event => {
         if (event.currentTarget === event.target) {
-            this.props.closeModal();
+            onModalClose();
         }
     };
 
-    render() {
-        return createPortal(
-            <Overlay  onClick={this.handleBackdropClick}>
-                <ModalContainer>
-                    <ModalImg src={this.props.url} alt="" />
-                </ModalContainer>
-            </Overlay>,
-            modalRoot
-        );
-    };
+    return createPortal(
+        <Overlay  onClick={handleBackdropClick}>
+            <ModalContainer>
+                <ModalImg src={url} alt="" />
+            </ModalContainer>
+        </Overlay>,
+        modalRoot
+    );
 };
 
 export default Modal;
 
 Modal.propTypes = {
-    closeModal: PropTypes.func.isRequired,
+    onModalClose: PropTypes.func.isRequired,
     url: PropTypes.string.isRequired,
 };

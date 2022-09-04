@@ -2,51 +2,46 @@ import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import { MdOutlineSearch } from "react-icons/md"
 import { Header, Form, BtnSearch, InputSearch } from './Searchbar.styled';
+import { useState } from 'react';
 
-const { Component } = require("react");
+const Searchbar = ({onSubmit}) => {
 
-class Searchbar extends Component {
+    const [searchRequest, setSearchRequest] = useState('');
 
-    state = {
-        searchRequest: '',
+    const handleRequestChange = event => {
+        setSearchRequest(event.currentTarget.value.toLowerCase());
     };
 
-    handleRequestChange = event => {
-        this.setState({ searchRequest: event.currentTarget.value.toLowerCase() });
-    }
-
-    handleSubmit = event => {
+    const handleSubmit = event => {
         event.preventDefault();
 
-        if (this.state.searchRequest.trim() === '') {
+        if (searchRequest.trim() === '') {
             return toast.warning('Search field is empty!');
         }
 
-        this.props.onSubmit(this.state.searchRequest);
-        this.setState({ searchRequest: '' });
-    }
-
-    render() {
-        return (
-            <Header>
-                <Form onSubmit={this.handleSubmit}>
-                    <BtnSearch type="submit">
-                        <MdOutlineSearch size={20} />
-                    </BtnSearch>
-                    <InputSearch
-                        type="text"
-                        name='searchRequest'
-                        value={this.state.searchRequest}
-                        onChange={this.handleRequestChange}
-                        autoComplete="off"
-                        autoFocus
-                        placeholder="Search images and photos"
-                    />
-                </Form>
-            </Header>
-        );
+        onSubmit(searchRequest);
+        setSearchRequest('');
     };
-}
+
+    return (
+        <Header>
+            <Form onSubmit={handleSubmit}>
+                <BtnSearch type="submit">
+                    <MdOutlineSearch size={20} />
+                </BtnSearch>
+                <InputSearch
+                    type="text"
+                    name='searchRequest'
+                    value={searchRequest}
+                    onChange={handleRequestChange}
+                    autoComplete="off"
+                    autoFocus
+                    placeholder="Search images and photos"
+                />
+            </Form>
+        </Header>
+    );
+};
 
 export default Searchbar;
 

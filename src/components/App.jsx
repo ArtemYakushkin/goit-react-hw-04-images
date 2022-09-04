@@ -7,92 +7,70 @@ import ImageGallery from './ImageGallery/ImageGallery';
 import Modal from './Modal/Modal';
 import Button from './Button/Button';
 import { Loader } from './Loader/Loader';
-import * as API from "../services/API";
+import loadImg from 'services/API';
+import { useState } from 'react';
+import { useEffect } from 'react';
 
-const { Component } = require("react");
+const App = () => {
 
-class App extends Component {
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState('');
 
-  state = {
-    page: 1,
-    query: '',
-    items: [],
-    error: null,
-    isLoading: false,
-    showModal: '',
-  }
+  useEffect(() => {
 
-  onOpenModalWithLargeImage = url => {
-    this.setState({
-      showModal: url,
-    });
-  };
-
-  onModalClose = () => {
-    this.setState({
-      showModal: ''
-    });
-  };
-
-  handleSearchSubmit = query => {
-    this.setState({
-      query,
-      page: 1,
-      items: [],
-    })
-  };
-
-  addImages = async (query, page) => {
-    try {
-      this.setState({
-        isLoading: true
-      });
-      const images = await API.loadImg(page, query);
-      this.setState(prevState => ({
-        items: [...prevState.items, ...images],
-        isLoading: false,
-      }));
-      if (images.length === 0) {
-        toast.warning("Sorry, we can't find anyting for your request. Please, enter another request");
-      }
-    } catch (error) {
-      this.setState({
-        error: error.mesage,
-      });
-    } finally {
-      this.setState({
-        isLoading: false,
-      });
+    if (!query) {
+      return;
     }
+
+    setIsLoading(true);
+
+    loadImg(page, query)
+      .then(dataImages => {
+        setItems(prevState => [...prevState, ...dataImages.hits]);
+        setIsLoading(false);
+        if (dataImages.hits.length === 0) {
+          toast.warning("Sorry, we can't find anyting for your request. Please, enter another request");
+        };
+      })
+      .catch(error => {
+        setError(error.message);
+      });
+    
+  }, [page, query]);
+
+  const onOpenModalWithLargeImage = url => {
+    setShowModal(url);
   };
 
-  onLoadMoreButton = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+  const onModalClose = () => {
+    setShowModal('');
   };
 
-  componentDidUpdate(_, prevState) {
-    if (prevState.page !== this.state.page || prevState.query !== this.state.query) {
-      this.addImages(this.state.query, this.state.page);
-    }
+  const handleSearchSubmit = query => {
+    setQuery(query);
+    setPage(1);
+    setItems([]);
   };
 
-  render() {
-    return (
-      <Container>
-        <Searchbar onSubmit={this.handleSearchSubmit} />
-        {this.state.error && <p>{this.state.error}</p>}
-        {this.state.items.length > 0 && <ImageGallery items={this.state.items} onClick={this.onOpenModalWithLargeImage} />}
-        {this.state.isLoading && <Loader />}
-        {this.state.items.length > 0 && (<Button onLoadMore={this.onLoadMoreButton} isLoading={this.state.isLoading}/>)}
-        {this.state.showModal && (<Modal closeModal={this.onModalClose} url={this.state.showModal}/>)}
-        <ToastContainer autoClose={3000} />
-      </Container>
-    )
-  }
+  const onLoadMoreButton = () => {
+    setPage(prevState => prevState + 1);
+  };
+
+  return (
+    <Container>
+      <Searchbar onSubmit={handleSearchSubmit} />
+      {error && <p>{error}</p>}
+      {items.length > 0 && <ImageGallery items={items} onClick={onOpenModalWithLargeImage} />}
+      {isLoading && <Loader />}
+      {items.length > 0 && (<Button onLoadMore={onLoadMoreButton} isLoading={isLoading} />)}
+      {showModal && (<Modal onModalClose={onModalClose} url={showModal} />)}
+      <ToastContainer autoClose={3000} />
+    </Container>
+  );
 }
 
 export default App;
-
-
