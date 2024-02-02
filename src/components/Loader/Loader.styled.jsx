@@ -1,10 +1,10 @@
-import styled from "styled-components";
+import styled from 'styled-components';
 
 export const SpinnerContainer = styled.div`
-    /* width: 100vw;
+  /* width: 100vw;
     height: 100vh; */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 10px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 105px 0;
 `;
